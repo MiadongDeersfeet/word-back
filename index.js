@@ -32,11 +32,25 @@ function isLocalhostOrigin(origin) {
   }
 }
 
+function isVercelOrigin(origin) {
+  try {
+    const parsed = new URL(origin);
+    return parsed.protocol === "https:" && parsed.hostname.endsWith(".vercel.app");
+  } catch (error) {
+    return false;
+  }
+}
+
 app.use(
   cors({
     origin(origin, callback) {
       // Allow requests without Origin (e.g. Postman/curl)
-      if (!origin || CLIENT_ORIGINS.includes(origin) || isLocalhostOrigin(origin)) {
+      if (
+        !origin ||
+        CLIENT_ORIGINS.includes(origin) ||
+        isLocalhostOrigin(origin) ||
+        isVercelOrigin(origin)
+      ) {
         return callback(null, true);
       }
       return callback(new Error("CORS 허용되지 않은 출처입니다."));
@@ -67,7 +81,7 @@ const startServer = async () => {
       console.log(`서버 실행 중: http://localhost:${PORT}`);
     });
   } catch (error) {
-    console.error("서버 시작 실패:", error.message);
+    console.error("서버 시작 실패:", error);
     process.exit(1);
   }
 };
